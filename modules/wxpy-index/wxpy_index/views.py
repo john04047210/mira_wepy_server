@@ -66,7 +66,7 @@ def test_api():
     return jsonify({'code': 0, 'msg': _('success'), 'data': {'uri': url_for('wxpy_index_api.test_api'), 'method': request.method}})
 
 
-@blueprint_rest.route('/jscode2session/<int:code>', methods=['GET'])
+@blueprint_rest.route('/jscode2session/<string:code>', methods=['GET'])
 def jscode2session(code):
     """登录凭证校验。通过 wx.login() 接口获得临时登录凭证 code 换取 openId session 等信息
 
