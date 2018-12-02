@@ -91,10 +91,10 @@ def jscode2session(code):
         r = http.get(url)
         if r:
             resp = r.json()
-            if resp.errcode == 0:
+            if resp['errcode'] == 0:
                 # success
-                wepyOpenId = resp.openid
-                wepySession = resp.session_key
+                wepyOpenId = resp['openid']
+                wepySession = resp['session_key']
                 wepyUnionId = getattr(resp, 'unionid', None)
                 result = {
                     'code': 0,
@@ -107,7 +107,7 @@ def jscode2session(code):
                 }
                 session['openid'] = result.data
             else:
-                result['msg'] = "[{}]{}".format(resp.errcode, resp.errmsg)
-                current_app.logger.error("jscode2session{} error{}:{}".format(appid, resp.errcode, resp.errmsg))
+                result['msg'] = "[{}]{}".format(resp['errcode'], resp['errmsg'])
+                current_app.logger.error("jscode2session{} error{}:{}".format(appid, resp['errcode'], resp['errmsg']))
     return jsonify(result)
 
