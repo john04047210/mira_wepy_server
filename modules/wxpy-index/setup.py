@@ -77,7 +77,7 @@ setup(
     license='GPLv2',
     author='QiaoPeng',
     author_email='test@shilikaif.com',
-    url='https://github.com/john04047210/docker-python-wxpy',
+    url='https://github.com/john04047210/mira_wepy_server.git',
     packages=packages,
     zip_safe=False,
     include_package_data=True,

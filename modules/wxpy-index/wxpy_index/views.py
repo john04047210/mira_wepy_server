@@ -33,7 +33,7 @@ blueprint = Blueprint(
     __name__,
     template_folder='templates',
     static_folder='static',
-    url_prefix='/wxpy',
+    # url_prefix='/wxpy',
 )
 
 blueprint_rest = Blueprint(

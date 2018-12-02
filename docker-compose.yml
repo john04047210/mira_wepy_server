@@ -1,10 +1,11 @@
 version: "3.2"
 services:
-
-  web_flask:
+  wepy_server:
     build: .
     restart: "no"
     command: /bin/bash -c "invenio run --host 0.0.0.0"
+    networks:
+      - proxy
     environment:
       - FLASK_DEBUG=1
     volumes:
@@ -17,12 +18,7 @@ services:
   redis:
     image: redis
 
-  nginx:
-    build: ./nginx
-    volumes:
-      - ./nginx/conf.d:/etc/nginx/conf.d
-    ports:
-      - "8081:80"
-    depends_on:
-      - web_flask
+networks:
+  proxy:
+    external: true
       
