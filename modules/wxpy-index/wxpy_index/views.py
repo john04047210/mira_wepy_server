@@ -81,33 +81,37 @@ def jscode2session(code):
     """
 
     result = {'code': -1, 'msg': _('code is empty')}
-    if code:
-        appid = request.headers['APPID']
-        if not appid:
-            appid = config.WXPY_APPID_DEF
-        appsecret = config.WXPY_APPID[appid]['appsecret']
-        url = "{}?appid={}&secret={}&js_code={}&&grant_type=authorization_code".format(
-            config.WXPY_CODE2SESSION_URL, appid, appsecret, code)
-        r = http.get(url)
-        if r:
-            resp = r.json()
-            if resp['errcode'] == 0:
-                # success
-                wepyOpenId = resp['openid']
-                wepySession = resp['session_key']
-                wepyUnionId = getattr(resp, 'unionid', None)
-                result = {
-                    'code': 0,
-                    'msg': _('success'),
-                    'data': {
-                        'openid': wepyOpenId,
-                        'session_key': wepySession,
-                        'unionid': wepyUnionId
+    try:
+        if code:
+            appid = request.headers['APPID']
+            if not appid:
+                appid = config.WXPY_APPID_DEF
+            appsecret = config.WXPY_APPID[appid]['appsecret']
+            payload = {'appid': appid, 'secret': appsecret, 'js_code': code, 'grant_type': 'authorization_code'}
+            r = http.get(config.WXPY_CODE2SESSION_URL, params=payload)
+            current_app.logger.debug("jscode2session{} result: {}".format(appid, r.text))
+            if r and r.status_code == 200:
+                resp = r.json()
+                if resp['errcode'] == 0:
+                    # success
+                    wepyOpenId = resp['openid']
+                    wepySession = resp['session_key']
+                    wepyUnionId = getattr(resp, 'unionid', None)
+                    result = {
+                        'code': 0,
+                        'msg': _('success'),
+                        'data': {
+                            'openid': wepyOpenId,
+                            'session_key': wepySession,
+                            'unionid': wepyUnionId
+                        }
                     }
-                }
-                session['openid'] = result.data
-            else:
-                result['msg'] = "[{}]{}".format(resp['errcode'], resp['errmsg'])
-                current_app.logger.error("jscode2session{} error{}:{}".format(appid, resp['errcode'], resp['errmsg']))
+                    session['openid'] = result.data
+                else:
+                    result['msg'] = "[{}]{}".format(resp['errcode'], resp['errmsg'])
+                    current_app.logger.error("jscode2session{} error{}:{}".format(appid, resp['errcode'], resp['errmsg']))
+    except Exception as ex:
+        current_app.logger.error("jscode2session{} except{}".format(appid, ex))
+        result['msg'] = "Exception: {}".format(ex)
     return jsonify(result)
 
