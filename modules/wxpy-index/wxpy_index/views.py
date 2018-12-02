@@ -23,9 +23,9 @@
 # TODO: This is an example file. Remove it if you do not need it, including
 # the templates and static folders as well as the test case.
 
-import requests as http
-
 from __future__ import absolute_import, print_function
+
+import requests as http
 
 from flask import Blueprint, current_app, jsonify, render_template, request, url_for, session
 from flask_babelex import gettext as _
