@@ -4,7 +4,7 @@ services:
     build: .
     container_name: wepy_server
     restart: "no"
-    command: /bin/bash -c "invenio run --host 0.0.0.0"
+    command: /bin/bash -c "invenio run --host 0.0.0.0 && celery worker -A invenio_app.celery -l DEBUG"
     networks:
       - proxy
       - back

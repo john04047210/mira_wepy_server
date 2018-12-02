@@ -28,3 +28,13 @@ WXPY_INDEX_DEFAULT_VALUE = 'foobar'
 
 WXPY_INDEX_BASE_TEMPLATE = 'wxpy_index/base.html'
 """Default base template for the demo page."""
+
+WXPY_APPID = {
+  'wxa55f028bafde4230': {
+    'appsecret': '3956974f30fca6fe6ec7f5aa598e5b2c'
+  }
+}
+WXPY_APPID_DEF = 'wxa55f028bafde4230'    # 日本語的学習
+WXPY_SCHEMA = 'https:'
+WXPY_BASE_URL = WXPY_SCHEMA + '//api.weixin.qq.com'
+WXPY_CODE2SESSION_URL = WXPY_BASE_URL + '/sns/jscode2session'

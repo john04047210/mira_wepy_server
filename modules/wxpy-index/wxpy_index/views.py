@@ -23,10 +23,14 @@
 # TODO: This is an example file. Remove it if you do not need it, including
 # the templates and static folders as well as the test case.
 
+import requests as http
+
 from __future__ import absolute_import, print_function
 
-from flask import Blueprint, jsonify, render_template, request, url_for
+from flask import Blueprint, current_app, jsonify, render_template, request, url_for, session
 from flask_babelex import gettext as _
+
+from . import config
 
 blueprint = Blueprint(
     'wxpy_index',
@@ -60,3 +64,50 @@ def test_api():
     access uri: /api/test
     """
     return jsonify({'code': 0, 'msg': _('success'), 'data': {'uri': url_for('wxpy_index_api.test_api'), 'method': request.method}})
+
+
+@blueprint_rest.route('/jscode2session/<int:code>', methods=['GET'])
+def jscode2session(code):
+    """登录凭证校验。通过 wx.login() 接口获得临时登录凭证 code 换取 openId session 等信息
+
+    https://developers.weixin.qq.com/miniprogram/dev/api/code2Session.html
+    GET https://api.weixin.qq.com/sns/jscode2session?appid=APPID&secret=SECRET&js_code=JSCODE&grant_type=authorization_code
+    请求参数
+    属性        类型     默认值  必填  说明
+    appid      string         是    小程序 appId	
+    secret     string         是    小程序 appSecret	
+    js_code    string         是    登录时获取的 code	
+    grant_type string         是    授权类型，此处只需填写 authorization_code
+    """
+
+    result = {'code': -1, 'msg': _('code is empty')}
+    if code:
+        appid = request.headers['APPID']
+        if not appid:
+            appid = config.WXPY_APPID_DEF
+        appsecret = config.WXPY_APPID[appid]['appsecret']
+        url = "{}?appid={}&secret={}&js_code={}&&grant_type=authorization_code".format(
+            config.WXPY_CODE2SESSION_URL, appid, appsecret, code)
+        r = http.get(url)
+        if r:
+            resp = r.json()
+            if resp.errcode == 0:
+                # success
+                wepyOpenId = resp.openid
+                wepySession = resp.session_key
+                wepyUnionId = getattr(resp, 'unionid', None)
+                result = {
+                    'code': 0,
+                    'msg': _('success'),
+                    'data': {
+                        'openid': wepyOpenId,
+                        'session_key': wepySession,
+                        'unionid': wepyUnionId
+                    }
+                }
+                session['openid'] = result.data
+            else:
+                result['msg'] = "[{}]{}".format(resp.errcode, resp.errmsg)
+                current_app.logger.error("jscode2session{} error{}:{}".format(appid, resp.errcode, resp.errmsg))
+    return jsonify(result)
+

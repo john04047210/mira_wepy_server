@@ -52,6 +52,7 @@ for reqs in extras_require.values():
 setup_requires = [
     'Babel>=1.3',
     'pytest-runner>=2.6.2',
+    'requests>=2.20.1',
 ]
 
 install_requires = [
