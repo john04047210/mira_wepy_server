@@ -92,11 +92,12 @@ def jscode2session(code):
             current_app.logger.debug("jscode2session[{}] result: {}".format(appid, r.text))
             if r and r.status_code == 200:
                 resp = r.json()
-                if hasattr(resp, 'openid'):
+                if 'openid' in resp:
                     # success
-                    wepy_openid = getattr(resp, 'openid', None)
-                    wepy_session = getattr(resp, 'session_key', None)
-                    wepy_unionid = getattr(resp, 'unionid', None)
+                    current_app.logger.debug("jscode2session[{}] result(success): {}".format(appid, r.text))
+                    wepy_openid = resp['openid']
+                    wepy_session = resp['session_key']
+                    wepy_unionid = resp['unionid'] if 'unionid' in resp else None
                     result = {
                         'code': 0,
                         'msg': _('success'),
@@ -106,8 +107,9 @@ def jscode2session(code):
                             'unionid': wepy_unionid
                         }
                     }
-                    session['openid'] = result.data
+                    session['openid'] = result['data']
                 else:
+                    current_app.logger.debug("jscode2session[{}] result(fail): {}".format(appid, r.text))
                     result['msg'] = "[{}]{}".format(resp['errcode'], resp['errmsg'])
                     current_app.logger.error("jscode2session[{}] error[{}]: {}".format(
                         appid, resp['errcode'], resp['errmsg']))
