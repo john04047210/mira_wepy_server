@@ -89,29 +89,30 @@ def jscode2session(code):
             appsecret = config.WXPY_APPID[appid]['appsecret']
             payload = {'appid': appid, 'secret': appsecret, 'js_code': code, 'grant_type': 'authorization_code'}
             r = http.get(config.WXPY_CODE2SESSION_URL, params=payload)
-            current_app.logger.debug("jscode2session{} result: {}".format(appid, r.text))
+            current_app.logger.debug("jscode2session[{}] result: {}".format(appid, r.text))
             if r and r.status_code == 200:
                 resp = r.json()
-                if resp['errcode'] == 0:
+                if hasattr(resp, 'openid'):
                     # success
-                    wepyOpenId = resp['openid']
-                    wepySession = resp['session_key']
-                    wepyUnionId = getattr(resp, 'unionid', None)
+                    wepy_openid = getattr(resp, 'openid', None)
+                    wepy_session = getattr(resp, 'session_key', None)
+                    wepy_unionid = getattr(resp, 'unionid', None)
                     result = {
                         'code': 0,
                         'msg': _('success'),
                         'data': {
-                            'openid': wepyOpenId,
-                            'session_key': wepySession,
-                            'unionid': wepyUnionId
+                            'openid': wepy_openid,
+                            'session_key': wepy_session,
+                            'unionid': wepy_unionid
                         }
                     }
                     session['openid'] = result.data
                 else:
                     result['msg'] = "[{}]{}".format(resp['errcode'], resp['errmsg'])
-                    current_app.logger.error("jscode2session{} error{}:{}".format(appid, resp['errcode'], resp['errmsg']))
+                    current_app.logger.error("jscode2session[{}] error[{}]: {}".format(
+                        appid, resp['errcode'], resp['errmsg']))
     except Exception as ex:
-        current_app.logger.error("jscode2session{} except{}".format(appid, ex))
+        current_app.logger.error("jscode2session[{}] except: {}".format(appid, ex))
         result['msg'] = "Exception: {}".format(ex)
     return jsonify(result)
 
