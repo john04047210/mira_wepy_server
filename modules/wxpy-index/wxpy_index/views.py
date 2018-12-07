@@ -29,6 +29,7 @@ import requests as http
 
 from flask import Blueprint, current_app, jsonify, render_template, request, url_for, session
 from flask_babelex import gettext as _
+from invenio_cache import current_cache as cache
 
 from . import config
 
@@ -108,6 +109,11 @@ def jscode2session(code):
                         }
                     }
                     session['openid'] = result['data']
+                    cache.init_app(app, config={
+                        'CACHE_REDIS_URL': config.CACHE_REDIS_URL,
+                        'CACHE_DEFAULT_TIMEOUT': config.CACHE_DEFAULT_TIMEOUT
+                    })
+                    cache.set(wepy_openid, result['data'])
                 else:
                     current_app.logger.debug("jscode2session[{}] result(fail): {}".format(appid, r.text))
                     result['msg'] = "[{}]{}".format(resp['errcode'], resp['errmsg'])

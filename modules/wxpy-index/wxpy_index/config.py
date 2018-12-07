@@ -29,6 +29,13 @@ WXPY_INDEX_DEFAULT_VALUE = 'foobar'
 WXPY_INDEX_BASE_TEMPLATE = 'wxpy_index/base.html'
 """Default base template for the demo page."""
 
+CACHE_TYPE = 'redis'
+
+CACHE_REDIS_URL = 'redis://wepy_redis:6379/1'
+"""Redis location and database."""
+
+CACHE_DEFAULT_TIMEOUT = 3600
+
 WXPY_APPID = {
   'wxa55f028bafde4230': {
     'appsecret': '3956974f30fca6fe6ec7f5aa598e5b2c'

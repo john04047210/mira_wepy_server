@@ -8,20 +8,38 @@ services:
     networks:
       - proxy
       - back
+    ports:
+      - "127.0.0.1:80:5000"
     environment:
       - FLASK_DEBUG=1
+      - INVENIO_REDIS_HOST=wepy_redis
+      - INVENIO_POSTGRESQL_HOST=db
+      - INVENIO_POSTGRESQL_DBNAME=wepy
+      - INVENIO_POSTGRESQL_DBUSER=wepy
+      - INVENIO_POSTGRESQL_DBPASS=wepy!1234
     volumes:
       - /code/modules/wxpy-index/.eggs
       - /code/modules/wxpy-index/wxpy_index.egg-info
       - ./modules:/code/modules
+      - ./entrypoint.sh:/code/entrypoint.sh
     depends_on:
       - redis
 
   redis:
     image: redis
+    restart: always
     container_name: wepy_redis
     networks:
       - back
+
+  db:
+    image: postgres:11-alpine
+    restart: always
+    container_name: wepy_db
+    environment:
+      - POSTGRES_PASSWORD=wepy!1234
+      - POSTGRES_USER=wepy
+      - POSTGRES_DB=wepy
 
 networks:
   proxy:
