@@ -32,6 +32,7 @@ from flask_babelex import gettext as _
 from invenio_cache import current_cache as cache
 
 from . import config
+from .api import WepyUserApi
 
 blueprint = Blueprint(
     'wxpy_index',
@@ -95,7 +96,6 @@ def jscode2session(code):
                 resp = r.json()
                 if 'openid' in resp:
                     # success
-                    current_app.logger.debug("jscode2session[{}] result(success): {}".format(appid, r.text))
                     wepy_openid = resp['openid']
                     wepy_session = resp['session_key']
                     wepy_unionid = resp['unionid'] if 'unionid' in resp else None
@@ -103,24 +103,64 @@ def jscode2session(code):
                         'code': 0,
                         'msg': _('success'),
                         'data': {
-                            'openid': wepy_openid,
-                            'session_key': wepy_session,
-                            'unionid': wepy_unionid
+                            'openid': wepy_openid
                         }
                     }
-                    session['openid'] = result['data']
-                    cache.init_app(app, config={
-                        'CACHE_REDIS_URL': config.CACHE_REDIS_URL,
-                        'CACHE_DEFAULT_TIMEOUT': config.CACHE_DEFAULT_TIMEOUT
-                    })
-                    cache.set(wepy_openid, result['data'])
+                    session['openid'] = {
+                            'openid': wepy_openid,
+                            'session': wepy_session,
+                            'unionid': wepy_unionid
+                        }
+                    WepyUserApi.save(wepy_openid, **{'session': wepy_session, 'appid': appid})
                 else:
-                    current_app.logger.debug("jscode2session[{}] result(fail): {}".format(appid, r.text))
                     result['msg'] = "[{}]{}".format(resp['errcode'], resp['errmsg'])
                     current_app.logger.error("jscode2session[{}] error[{}]: {}".format(
                         appid, resp['errcode'], resp['errmsg']))
     except Exception as ex:
-        current_app.logger.error("jscode2session[{}] except: {}".format(appid, ex))
+        current_app.logger.error("jscode2session[{}] except: {}".format(appid, ex), ex)
         result['msg'] = "Exception: {}".format(ex)
     return jsonify(result)
 
+
+@blueprint_rest.route('/user/me', methods=['GET', 'PUT'])
+def userinfo():
+    """Get or Update wepy userinfo (nickname, avatar)"""
+
+    result = {'code': -1, 'msg': _('params is empty')}
+    try:
+        appid = request.headers['APPID']
+        openid = request.headers['OPENID']
+        if not appid:
+            result = {'code': -1, 'msg': _('appid is empty')}
+        if not openid:
+            result = {'code': -1, 'msg': _('openid is empty')}
+        if appid and openid:
+            user_info = WepyUserApi.get(openid)
+            if user_info is not None and request.method == 'PUT':
+                payload = request.get_json()
+                user_info = WepyUserApi.save(
+                    openid,
+                    **{'nickname': payload['nickName'],
+                       'avatar': payload['avatarUrl'],
+                       'gender': payload['gender']}
+                )
+            if user_info is not None and user_info.nickname is not None:
+                result = {
+                    'code': 0 if user_info.nickname else -2,
+                    'msg': _('success'),
+                    'data': {
+                        'nickName': user_info.nickname,
+                        'avatarUrl': user_info.avatar,
+                        'gender': user_info.gender
+                    }
+                }
+            else:
+                result = {
+                    'code': -2,
+                    'msg': _('data not exist')
+                }
+
+    except Exception as ex:
+        current_app.logger.error('userinfo{} except: {}'.format(openid, ex), ex)
+        result['msg'] = "Exception: {}".format(ex)
+    return jsonify(result)

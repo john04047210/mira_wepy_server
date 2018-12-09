@@ -100,7 +100,12 @@ setup(
         ],
         # 'invenio_base.blueprints': [],
         # 'invenio_celery.tasks': [],
-        # 'invenio_db.models': [],
+        'invenio_db.models': [
+            'wxpy_models = wxpy_index.models',
+        ],
+        'invenio_db.alembic': [
+            'wxpy_models = wxpy_index:alembic',
+        ],
         # 'invenio_pidstore.minters': [],
         # 'invenio_records.jsonresolver': [],
     },
