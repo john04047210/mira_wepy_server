@@ -1,4 +1,4 @@
-FROM python:3.5-slim
+FROM python:3.6
 
 ENV INVENIO_WEB_HOST=127.0.0.1
 ENV INVENIO_WEB_INSTANCE=invenio
