@@ -11,3 +11,11 @@ invenio db create -v
 invenio alembic upgrade heads
 invenio alembic revision "add unionid for wepy_user."
 invenio alembic upgrade
+
+# 环境部署
+docker-compose build
+docker-compose up -d
+docker-compose exec wepy_server ./entrypoint.sh
+docker-compose restart wepy_server
+docker-compose exec wepy_server invenio db init
+# 参照7行

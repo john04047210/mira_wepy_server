@@ -77,12 +77,12 @@ def test_api():
     })
 
 
-@blueprint_rest.route('/access_token')
+@blueprint_rest.route('/access_token', methods=['GET'])
 def get_access_token_and_ticket():
     result = {'code': -1, 'msg': _('appid is empty')}
     try:
         with_ticket = int(request.args.get('with_ticket', '0'))
-        appid = request.headers['APPID']
+        appid = request.headers['APPID'] if 'APPID' in request.headers else None
         if not appid:
             appid = request.args.get('appid', None)
         if not appid:
