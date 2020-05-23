@@ -47,3 +47,14 @@ class WepyUserApi(object):
         except Exception as ex:
             current_app.logger.error('WepyUserApi.get({}) Except: '.format(openid), ex)
         return wepy_user
+
+
+class WepyTokenApi(object):
+    @classmethod
+    def getAccessToken(cls, appid):
+        token = cache.get('token-'+appid)
+        return token
+
+    @classmethod
+    def setAccessToken(cls, appid, token, expire_in=7200):
+        cache.set('token-'+appid, token, timeout=expire_in)

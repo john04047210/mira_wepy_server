@@ -191,5 +191,3 @@ class WepyUser(db.Model, TimestampMixin):
             db.session.merge(self)
         db.session.commit()
         return self
-
-

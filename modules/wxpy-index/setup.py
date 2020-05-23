@@ -52,12 +52,13 @@ for reqs in extras_require.values():
 setup_requires = [
     'Babel>=1.3',
     'pytest-runner>=2.6.2',
-    'requests>=2.20.1',
 ]
 
 install_requires = [
-    'invenio>=3.0.0rc1',
-    'Flask-BabelEx>=0.9.2',
+    'invenio==3.4.0a1',
+    'invenio-db==1.0.5',
+    'Flask-BabelEx==0.9.4',
+    'requests==2.23.0',
 ]
 
 packages = find_packages()

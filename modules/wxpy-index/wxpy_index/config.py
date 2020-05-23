@@ -37,11 +37,17 @@ CACHE_REDIS_URL = 'redis://wepy_redis:6379/1'
 CACHE_DEFAULT_TIMEOUT = 3600
 
 WXPY_APPID = {
-  'wxa55f028bafde4230': {
-    'appsecret': '3956974f30fca6fe6ec7f5aa598e5b2c'
-  }
+    'wxa55f028bafde4230': {
+        'appsecret': '3956974f30fca6fe6ec7f5aa598e5b2c'
+    },
+    'wxb4dc1e6c1d807494': {
+        # wepy.shilikaif.com/mall
+        'appsecret': '9fab2bc312d83594b97bc4bada908896'
+    }
 }
 WXPY_APPID_DEF = 'wxa55f028bafde4230'    # 日本語的学習
 WXPY_SCHEMA = 'https:'
 WXPY_BASE_URL = WXPY_SCHEMA + '//api.weixin.qq.com'
 WXPY_CODE2SESSION_URL = WXPY_BASE_URL + '/sns/jscode2session'
+WXPY_GET_TOKEN_URL = WXPY_BASE_URL + '/cgi-bin/token'
+WXPY_GET_TICKET_URL = WXPY_BASE_URL + '/cgi-bin/ticket/getticket'
