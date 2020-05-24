@@ -77,6 +77,15 @@ def test_api():
     })
 
 
+@blueprint.route('/preview/page')
+def preview_page_for_iphone():
+    target_url = request.args.get('link', '')
+    if not target_url:
+        return '请输入有效地址'
+    r = http.get(target_url)
+    return r.text
+
+
 @blueprint_rest.route('/access_token', methods=['GET'])
 def get_access_token_and_ticket():
     result = {'code': -1, 'msg': _('appid is empty')}
