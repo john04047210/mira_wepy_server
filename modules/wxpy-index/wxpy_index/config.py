@@ -38,15 +38,18 @@ CACHE_DEFAULT_TIMEOUT = 3600
 
 WXPY_APPID = {
     'wxa55f028bafde4230': {
-        'appsecret': '3956974f30fca6fe6ec7f5aa598e5b2c'
+        'appsecret': '3956974f30fca6fe6ec7f5aa598e5b2c',
+        'with_ticket': False
     },
     'wxb4dc1e6c1d807494': {
         # wepy.shilikaif.com/mall
-        'appsecret': '9fab2bc312d83594b97bc4bada908896'
+        'appsecret': '9fab2bc312d83594b97bc4bada908896',
+        'with_ticket': True
     },
     'wx23aa0f72539f1dbc': {
         # lingweimeizhuang
-        'appsecret': 'cf835a2c2464811ad3c588e2786588fb'
+        'appsecret': 'cf835a2c2464811ad3c588e2786588fb',
+        'with_ticket': True
     }
 }
 WXPY_APPID_DEF = 'wxa55f028bafde4230'    # 日本語的学習

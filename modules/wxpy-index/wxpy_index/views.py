@@ -90,13 +90,14 @@ def preview_page_for_iphone():
 def get_access_token_and_ticket():
     result = {'code': -1, 'msg': _('appid is empty')}
     try:
-        with_ticket = int(request.args.get('with_ticket', '0'))
+        with_ticket = request.args.get('with_ticket', None)
         appid = request.headers['APPID'] if 'APPID' in request.headers else None
         if not appid:
             appid = request.args.get('appid', None)
         if not appid:
             return jsonify(result)
-        with_ticket = True if with_ticket else False
+        if with_ticket is not None:
+            with_ticket = True if int(with_ticket) else False
         rtn, token = WepyTokenApi.getAccessToken(appid, with_ticket=with_ticket)
         if rtn:
             return jsonify({
@@ -228,7 +229,7 @@ def merchant_common_api():
         target_uri = post_data.pop('target_uri')
         target_method = post_data.pop('target_method')
         target_post_data = post_data.pop('target_post_data')
-        rtn, token = WepyTokenApi.getAccessToken(appid, with_ticket=False)
+        rtn, token = WepyTokenApi.getAccessToken(appid)
         if not rtn:
             return jsonify({'code': -1, 'msg': 'get access token error'})
         access_token = token['access_token']

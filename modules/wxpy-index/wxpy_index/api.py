@@ -56,7 +56,7 @@ class WepyUserApi(object):
 
 class WepyTokenApi(object):
     @classmethod
-    def getAccessToken(cls, appid, with_ticket=False):
+    def getAccessToken(cls, appid, with_ticket=None):
         token = cache.get('token-'+appid)
         if token:
             return True, {
@@ -66,6 +66,8 @@ class WepyTokenApi(object):
                 'jsapi_ticket': token.jsapi_ticket
             }
         appsecret = config.WXPY_APPID[appid]['appsecret']
+        if with_ticket is None:
+            with_ticket = config.WXPY_APPID[appid]['with_ticket']
         payload = {'appid': appid, 'secret': appsecret, 'grant_type': 'client_credential'}
         r = http.get(config.WXPY_GET_TOKEN_URL, params=payload)
         # https://developers.weixin.qq.com/doc/offiaccount/Basic_Information/Get_access_token.html
