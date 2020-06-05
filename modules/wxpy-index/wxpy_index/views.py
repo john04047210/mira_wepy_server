@@ -231,7 +231,7 @@ def merchant_common_api():
         rtn, token = WepyTokenApi.getAccessToken(appid, with_ticket=False)
         if not rtn:
             return jsonify({'code': -1, 'msg': 'get access token error'})
-        access_token = token.access_token
+        access_token = token['access_token']
         target_url = '{domain}{uri}?access_token={access_token}'.format(
             domain=config.WXPY_BASE_URL, uri=target_uri, access_token=access_token)
         if target_method == 'POST':
