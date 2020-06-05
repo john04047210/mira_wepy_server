@@ -96,93 +96,19 @@ def get_access_token_and_ticket():
             appid = request.args.get('appid', None)
         if not appid:
             return jsonify(result)
-        token = WepyTokenApi.getAccessToken(appid)
-        if token:
+        with_ticket = True if with_ticket else False
+        rtn, token = WepyTokenApi.getAccessToken(appid, with_ticket=with_ticket)
+        if rtn:
             return jsonify({
                 'code': 0,
                 'msg': _('success'),
-                'data': {
-                    'from': 'cache',
-                    'access_token': token.access_token,
-                    'create_time': token.create_time,
-                    'jsapi_ticket': token.jsapi_ticket
-                }
+                'data': token
             })
-        appsecret = config.WXPY_APPID[appid]['appsecret']
-        payload = {'appid': appid, 'secret': appsecret, 'grant_type': 'client_credential'}
-        r = http.get(config.WXPY_GET_TOKEN_URL, params=payload)
-        # https://developers.weixin.qq.com/doc/offiaccount/Basic_Information/Get_access_token.html
-        current_app.logger.debug("get_access_token[{}] result: {}".format(appid, r.text))
-        if r and r.status_code == 200:
-            resp = ObjDict(**r.json())
-            if 'access_token' in resp:
-                # success
-                wepy_access_token = resp.access_token
-                wepy_expire_in = resp.expires_in    # 凭证有效时间，单位：秒
-                wepy_create_time = int(datetime.today().timestamp())
-                if with_ticket:
-                    query = {'access_token': wepy_access_token, 'type': 'jsapi'}
-                    r = http.get(config.WXPY_GET_TICKET_URL, params=query)
-                    # https://developers.weixin.qq.com/doc/offiaccount/OA_Web_Apps/JS-SDK.html#63
-                    # 附录1-JS-SDK使用权限签名算法
-                    # jsapi_ticket
-                    # 生成签名之前必须先了解一下jsapi_ticket，jsapi_ticket是公众号用于调用微信JS接口的临时票据。
-                    # 正常情况下，jsapi_ticket的有效期为7200秒，通过access_token来获取。由于获取jsapi_ticket的api
-                    # 调用次数非常有限，频繁刷新jsapi_ticket会导致api调用受限，影响自身业务，
-                    # 开发者必须在自己的服务全局缓存jsapi_ticket 。
-                    # 1.参考以下文档获取access_token（有效期7200秒，开发者必须在自己的服务全局缓存access_token）：
-                    # https://developers.weixin.qq.com/doc/offiaccount/Basic_Information/Get_access_token.html
-                    # 2.用第一步拿到的access_token 采用http GET方式请求获得jsapi_ticket（有效期7200秒，
-                    # 开发者必须在自己的服务全局缓存jsapi_ticket）：
-                    # https://api.weixin.qq.com/cgi-bin/ticket/getticket?access_token=ACCESS_TOKEN&type=jsapi
-                    # 成功返回如下JSON：
-                    # {
-                    #     "errcode": 0,
-                    #     "errmsg": "ok",
-                    #     "ticket": "bxLdikRXVbTPdHSM05e5u5sUoXNKd8-41ZO3MhKoyN5OfkWITDGgnr2fwJ0m9E8NYzWKVZvdVtaUgWvsdshFKA",
-                    #     "expires_in": 7200
-                    # }
-                    # 获得jsapi_ticket之后，就可以生成JS - SDK权限验证的签名了。
-                    if r and r.status_code == 200:
-                        resp = ObjDict(**r.json())
-                        if resp.errcode == 0:
-                            wepy_jsapi_ticket = resp.ticket
-                            result = {
-                                'code': 0,
-                                'msg': _('success'),
-                                'data': {
-                                    'access_token': wepy_access_token,
-                                    'create_time': wepy_create_time,
-                                    'jsapi_ticket': wepy_jsapi_ticket
-                                }
-                            }
-                        else:
-                            return jsonify({
-                                'code': -1,
-                                'msg': resp.errmsg
-                            })
-                    else:
-                        return jsonify({
-                            'code': -1,
-                            'msg': 'get ticket from wepy error'
-                        })
-                else:
-                    result = {
-                        'code': 0,
-                        'msg': _('success'),
-                        'data': {
-                            'access_token': wepy_access_token,
-                            'create_time': wepy_create_time,
-                            'jsapi_ticket': ''
-                        }
-                    }
-                WepyTokenApi.setAccessToken(appid, ObjDict(**result['data']), expire_in=wepy_expire_in)
-            else:
-                result['msg'] = "[{}]{}".format(resp['errcode'], resp['errmsg'])
-                current_app.logger.error("jscode2session[{}] error[{}]: {}".format(
-                    appid, resp['errcode'], resp['errmsg']))
         else:
-            result['msg'] = 'get access token from wepy error'
+            return jsonify({
+                'code': -1,
+                'msg': token
+            })
     except Exception as ex:
         current_app.logger.error("get_access_token_and_ticket[{}] except: {}".format(appid, ex), ex)
         result['msg'] = "Exception: {}".format(ex)
@@ -283,6 +209,44 @@ def userinfo():
 
     except Exception as ex:
         current_app.logger.error('userinfo{} except: {}'.format(openid, ex), ex)
+        result['msg'] = "Exception: {}".format(ex)
+    return jsonify(result)
+
+
+@blueprint_rest.route('/merchant/common/api', methods=['POST'])
+def merchant_common_api():
+    result = {'code': -1, 'msg': _('appid is empty')}
+    try:
+        appid = request.headers['APPID'] if 'APPID' in request.headers else None
+        if not appid:
+            appid = request.args.get('appid', None)
+        if not appid:
+            return jsonify(result)
+        post_data = request.get_json()
+        if not post_data:
+            return jsonify({'code': -1, 'msg': 'post data is empty'})
+        target_uri = post_data.pop('target_uri')
+        target_method = post_data.pop('target_method')
+        target_post_data = post_data.pop('target_post_data')
+        rtn, token = WepyTokenApi.getAccessToken(appid, with_ticket=False)
+        if not rtn:
+            return jsonify({'code': -1, 'msg': 'get access token error'})
+        access_token = token.access_token
+        target_url = '{domain}{uri}?access_token={access_token}'.format(
+            domain=config.WXPY_BASE_URL, uri=target_uri, access_token=access_token)
+        if target_method == 'POST':
+            r = http.post(target_url, json=target_post_data)
+        if r and r.status_code == 200:
+            result = {
+                'code': 0,
+                'msg': _('success'),
+                'data': r.json()
+            }
+        else:
+            result['msg'] = "request wepy merchant error"
+            result['data'] = r.json()
+    except Exception as ex:
+        current_app.logger.error("merchant_common_api[{}] except: {}".format(appid, ex), ex)
         result['msg'] = "Exception: {}".format(ex)
     return jsonify(result)
 

@@ -43,6 +43,10 @@ WXPY_APPID = {
     'wxb4dc1e6c1d807494': {
         # wepy.shilikaif.com/mall
         'appsecret': '9fab2bc312d83594b97bc4bada908896'
+    },
+    'wx23aa0f72539f1dbc': {
+        # lingweimeizhuang
+        'appsecret': 'cf835a2c2464811ad3c588e2786588fb'
     }
 }
 WXPY_APPID_DEF = 'wxa55f028bafde4230'    # 日本語的学習
